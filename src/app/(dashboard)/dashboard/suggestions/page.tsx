@@ -16,7 +16,6 @@ export default async function SuggestionsPage() {
   });
   if (!restaurant) redirect("/dashboard/settings");
 
-  // Map item id → { name, price }
   const itemMap: Record<string, { name: string; price: number }> = {};
   restaurant.categories.forEach((cat) =>
     cat.items.forEach((item) => {
@@ -36,6 +35,7 @@ export default async function SuggestionsPage() {
       itemPrices: itemDetails.map((i) => i.price),
       originalTotal,
       comboPrice: s.comboPrice ? Number(s.comboPrice) : null,
+      offerEndsAt: s.offerEndsAt ? s.offerEndsAt.toISOString() : null,
       status: s.status,
       createdAt: s.createdAt.toISOString(),
     };

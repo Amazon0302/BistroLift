@@ -15,26 +15,70 @@ export interface CartEntry extends CartItem {
   note?: string;
 }
 
+export interface ComboSuggestion {
+  id: string;
+  title: string;
+  reasoning: string;
+  items: CartItem[];
+  comboPrice: number | null;
+}
+
+export interface CategoryNudge {
+  categoryName: string;
+  emoji: string | null;
+  items: CartItem[];
+}
+
 interface Props {
   entries: CartEntry[];
   themeColor: string;
   tableId?: string;
   restaurantName: string;
+  combos?: ComboSuggestion[];
+  categoryNudges?: CategoryNudge[];
   onClose: () => void;
   onUpdateQty: (id: string, qty: number) => void;
   onRemove: (id: string) => void;
   onClear: () => void;
+  onAddToCart?: (item: CartItem, qty: number) => void;
 }
 
 export default function CartDrawer({
   entries, themeColor, tableId, restaurantName,
-  onClose, onUpdateQty, onRemove, onClear,
+  combos = [], categoryNudges = [],
+  onClose, onUpdateQty, onRemove, onClear, onAddToCart,
 }: Props) {
   const [visible, setVisible] = useState(false);
   const [note, setNote] = useState("");
   const [showSummary, setShowSummary] = useState(false);
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
+
+  function quickAdd(item: CartItem) {
+    onAddToCart?.(item, 1);
+    setAddedIds((prev) => new Set([...prev, item.id]));
+  }
+
+  // ── Combo upsell: find a combo where ≥2 items are already in cart ────────
+  const cartIds = new Set(entries.map((e) => e.id));
+  const comboUpsell = (() => {
+    for (const combo of combos) {
+      const inCart  = combo.items.filter((i) => cartIds.has(i.id));
+      const missing = combo.items.filter((i) => !cartIds.has(i.id));
+      if (inCart.length >= 2 && missing.length >= 1) {
+        const originalTotal = combo.items.reduce((s, i) => s + i.price, 0);
+        const savings = combo.comboPrice != null ? originalTotal - combo.comboPrice : 0;
+        return { combo, missing, savings };
+      }
+    }
+    return null;
+  })();
+
+  // ── Category nudges: only show categories with no item in cart ────────────
+  const activeNudges = categoryNudges.filter(
+    (n) => !n.items.some((i) => cartIds.has(i.id))
+  );
 
   function close() {
     setVisible(false);
@@ -123,6 +167,88 @@ export default function CartDrawer({
                 </div>
               </div>
             ))
+          )}
+
+          {/* ── Combo upsell ── */}
+          {comboUpsell && entries.length > 0 && (
+            <div className="mt-3 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-3.5">
+              <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
+                🎁 Almost a combo!
+              </p>
+              <p className="text-white text-sm font-semibold leading-snug">
+                {comboUpsell.combo.title}
+              </p>
+              <p className="text-zinc-400 text-xs mt-0.5 mb-3">{comboUpsell.combo.reasoning}</p>
+              <div className="flex flex-col gap-2">
+                {comboUpsell.missing.map((item) => {
+                  const added = addedIds.has(item.id);
+                  return (
+                    <div key={item.id} className="flex items-center gap-2.5">
+                      {item.imageUrl
+                        ? <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+                        : <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0 text-lg">🍽️</div>}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-xs font-semibold truncate">{item.name}</p>
+                        <p className="text-zinc-500 text-xs">${item.price.toFixed(2)}</p>
+                      </div>
+                      {comboUpsell.savings > 0.01 && (
+                        <span className="text-emerald-400 text-xs font-bold flex-shrink-0">
+                          Save ${comboUpsell.savings.toFixed(2)}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => quickAdd(item)}
+                        disabled={added}
+                        className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-60"
+                        style={added ? { backgroundColor: "#22c55e22", color: "#4ade80" } : { backgroundColor: themeColor, color: "#000" }}
+                      >
+                        {added ? "✓ Added" : "+ Add"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Drink / dessert nudges ── */}
+          {activeNudges.length > 0 && entries.length > 0 && (
+            <div className="mt-3">
+              {activeNudges.map((nudge) => (
+                <div key={nudge.categoryName} className="mb-3">
+                  <p className="text-zinc-400 text-xs font-semibold mb-2">
+                    {nudge.emoji ?? "🍹"} Add {nudge.categoryName}?
+                  </p>
+                  <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1" style={{ scrollbarWidth: "none" }}>
+                    {nudge.items.slice(0, 5).map((item) => {
+                      const added = addedIds.has(item.id) || cartIds.has(item.id);
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex-shrink-0 w-28 bg-zinc-900 border border-white/[0.06] rounded-2xl overflow-hidden"
+                        >
+                          {item.imageUrl
+                            ? <img src={item.imageUrl} alt={item.name} className="w-full h-16 object-cover" />
+                            : <div className="w-full h-16 bg-zinc-800 flex items-center justify-center text-2xl">{nudge.emoji ?? "🍹"}</div>}
+                          <div className="p-2">
+                            <p className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{item.name}</p>
+                            <p className="text-zinc-500 text-[10px] mt-0.5">${item.price.toFixed(2)}</p>
+                            <button
+                              onClick={() => quickAdd(item)}
+                              disabled={added}
+                              className="mt-1.5 w-full text-[11px] font-bold py-1 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                              style={added ? { backgroundColor: "#22c55e22", color: "#4ade80" } : { backgroundColor: `${themeColor}22`, color: themeColor }}
+                            >
+                              {added ? "✓" : "+"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
 
           {/* Special requests */}

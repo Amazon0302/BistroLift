@@ -10,7 +10,9 @@ import ComboDetailSheet from "./ComboDetailSheet";
 import type { Combo } from "./ComboDetailSheet";
 import CartButton from "./CartButton";
 import CartDrawer from "./CartDrawer";
-import type { CartItem, CartEntry } from "./CartDrawer";
+import type { CartItem, CartEntry, ComboSuggestion, CategoryNudge } from "./CartDrawer";
+import AIChatSheet from "./AIChatSheet";
+import CartBoostBanner from "./CartBoostBanner";
 
 interface MenuItem {
   id: string;
@@ -32,6 +34,7 @@ interface Category {
 
 interface Restaurant {
   id: string;
+  slug: string;
   name: string;
   logoUrl: string | null;
   coverUrl: string | null;
@@ -54,6 +57,7 @@ interface ApprovedSuggestion {
   reasoning: string;
   items: SuggestionItem[];
   comboPrice: number | null;
+  offerEndsAt?: string | null;
 }
 
 interface Props {
@@ -70,10 +74,12 @@ export default function MenuPage({ restaurant, categories, approvedSuggestions =
   const [showPopup, setShowPopup] = useState(false);
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? "");
   const [showBestDeal, setShowBestDeal] = useState(false);
+  const [dismissedBoosts, setDismissedBoosts] = useState<Set<string>>(new Set());
 
   // Cart state
   const [cartEntries, setCartEntries] = useState<CartEntry[]>([]);
   const [showCart, setShowCart] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   // Detail sheet state
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
@@ -176,14 +182,63 @@ export default function MenuPage({ restaurant, categories, approvedSuggestions =
   }
 
   // ── Suggestions ──────────────────────────────────────────────────────────
-  const combos   = approvedSuggestions.filter((s) => s.type === "combo");
-  const addons   = approvedSuggestions.filter((s) => s.type === "addon");
-  const upgrades = approvedSuggestions.filter((s) => s.type === "upgrade");
+  // `now` must only be used after mount — Date.now() differs between server
+  // and client renders, causing hydration mismatches if used unconditionally.
+  const now = mounted ? Date.now() : 0;
+  const activeSuggestions = mounted
+    ? approvedSuggestions.filter(
+        (s) => !s.offerEndsAt || new Date(s.offerEndsAt).getTime() > now
+      )
+    : approvedSuggestions;
+
+  const combos   = activeSuggestions.filter((s) => s.type === "combo");
+  const addons   = activeSuggestions.filter((s) => s.type === "addon");
+  const upgrades = activeSuggestions.filter((s) => s.type === "upgrade");
+  const specials = activeSuggestions.filter((s) => s.type === "special");
 
   const bestDeal = combos
     .filter((c) => c.comboPrice !== null)
     .map((c) => ({ ...c, savings: c.items.reduce((s, i) => s + i.price, 0) - (c.comboPrice ?? 0) }))
     .sort((a, b) => b.savings - a.savings)[0];
+
+  // Cart-aware boost: find an addon where exactly one item is in cart and at least one isn't
+  const cartItemIds = new Set(cartEntries.map((e) => e.id));
+  const cartBoostSuggestion = mounted
+    ? (() => {
+        for (const addon of addons) {
+          if (dismissedBoosts.has(addon.id)) continue;
+          const inCart = addon.items.filter((i) => cartItemIds.has(i.id));
+          const notInCart = addon.items.filter((i) => !cartItemIds.has(i.id));
+          if (inCart.length >= 1 && notInCart.length >= 1) {
+            return { id: addon.id, reasoning: addon.reasoning, boostItem: notInCart[0] };
+          }
+        }
+        return null;
+      })()
+    : null;
+
+  // ── Cart drawer upsells ─────────────────────────────────────────────────
+  const cartComboSuggestions: ComboSuggestion[] = combos.map((c) => ({
+    id: c.id,
+    title: c.title,
+    reasoning: c.reasoning,
+    items: c.items,
+    comboPrice: c.comboPrice,
+  }));
+
+  const DRINK_RE  = /drink|drinks|beverage|beverages|juice|coffee|tea|cocktail|wine|beer|soda|water|smoothie|shake/i;
+  const DESSERT_RE = /dessert|desserts|sweet|sweets|cake|ice.?cream|pudding|pastry|bakery/i;
+
+  const cartCategoryNudges: CategoryNudge[] = categories
+    .filter((cat) => DRINK_RE.test(cat.name) || DESSERT_RE.test(cat.name))
+    .map((cat) => ({
+      categoryName: cat.name,
+      emoji: cat.emoji,
+      items: cat.items
+        .slice(0, 5)
+        .map((item) => ({ id: item.id, name: item.name, price: item.price, imageUrl: item.imageUrl })),
+    }))
+    .filter((n) => n.items.length > 0);
 
   // Cart qty for selected item (for detail sheet)
   const selectedCartQty = selectedItem
@@ -191,7 +246,7 @@ export default function MenuPage({ restaurant, categories, approvedSuggestions =
     : 0;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pb-28" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#0a0a0a] text-white pb-28">
 
       {/* ── Hero ── */}
       <div className="relative h-64 overflow-hidden">
@@ -218,6 +273,55 @@ export default function MenuPage({ restaurant, categories, approvedSuggestions =
 
       {/* ── Category nav ── */}
       <CategoryNav categories={categories} activeId={activeCategory} onSelect={scrollToCategory} themeColor={restaurant.themeColor} />
+
+      {/* ── Today's Specials ── */}
+      {mounted && specials.length > 0 && (
+        <div className="mt-5 px-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">⭐</span>
+            <h2 className="text-base font-bold text-white">Today&apos;s Specials</h2>
+          </div>
+          <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1" style={{ scrollbarWidth: "none" }}>
+            {specials.map((special) => {
+              const item = special.items[0];
+              if (!item) return null;
+              const endsAt = special.offerEndsAt ? new Date(special.offerEndsAt) : null;
+              const hoursLeft = endsAt ? Math.ceil((endsAt.getTime() - now) / 3600000) : null;
+              return (
+                <button
+                  key={special.id}
+                  onClick={() => { const full = itemMap[item.id]; if (full) setSelectedItem(full); }}
+                  className="flex-shrink-0 w-48 bg-[#141414] border border-rose-500/20 rounded-2xl overflow-hidden text-left active:scale-95 transition-transform"
+                >
+                  {item.imageUrl && (
+                    <div className="relative h-28 overflow-hidden">
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      {hoursLeft !== null && (
+                        <span className="absolute top-2 left-2 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          ⏱ {hoursLeft}h left
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <p className="text-white font-bold text-sm leading-tight">{special.title}</p>
+                    <p className="text-zinc-400 text-[11px] mt-1 leading-snug line-clamp-2">{special.reasoning}</p>
+                    {special.comboPrice != null && (
+                      <div className="flex items-baseline gap-1.5 mt-2">
+                        <span className="font-extrabold text-sm text-rose-400">${special.comboPrice.toFixed(2)}</span>
+                        {item.price > special.comboPrice && (
+                          <span className="text-[10px] text-zinc-500 line-through">${item.price.toFixed(2)}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Strategy 1: Popular Picks ── */}
       <PopularPicks
@@ -331,6 +435,16 @@ export default function MenuPage({ restaurant, categories, approvedSuggestions =
         ))}
       </div>
 
+      {/* ── Cart Boost Banner ── */}
+      {cartBoostSuggestion && cartCount > 0 && !showCart && (
+        <CartBoostBanner
+          suggestion={cartBoostSuggestion}
+          themeColor={restaurant.themeColor}
+          onAdd={addToCart}
+          onDismiss={() => setDismissedBoosts((prev) => new Set([...prev, cartBoostSuggestion.id]))}
+        />
+      )}
+
       {/* ── Strategy 4: Sticky Best-Deal Pill (hides when cart is visible) ── */}
       {mounted && showBestDeal && bestDeal && bestDeal.savings > 0.5 && cartCount === 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4 duration-500"
@@ -348,6 +462,22 @@ export default function MenuPage({ restaurant, categories, approvedSuggestions =
             <span className="text-white/70 text-xs flex-shrink-0">→</span>
           </button>
         </div>
+      )}
+
+      {/* ── AI Chat Button ── */}
+      {mounted && !showChat && (
+        <button
+          onClick={() => setShowChat(true)}
+          className="fixed bottom-6 right-4 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-2xl border border-white/10 transition-transform active:scale-95"
+          style={{
+            backgroundColor: `${restaurant.themeColor}22`,
+            backdropFilter: "blur(12px)",
+            boxShadow: `0 8px 24px ${restaurant.themeColor}33`,
+            borderColor: `${restaurant.themeColor}40`,
+          }}
+        >
+          🤖
+        </button>
       )}
 
       {/* ── Cart FAB ── */}
@@ -397,10 +527,27 @@ export default function MenuPage({ restaurant, categories, approvedSuggestions =
           themeColor={restaurant.themeColor}
           tableId={tableId}
           restaurantName={restaurant.name}
+          combos={cartComboSuggestions}
+          categoryNudges={cartCategoryNudges}
           onClose={() => setShowCart(false)}
           onUpdateQty={updateCartQty}
           onRemove={removeFromCart}
           onClear={clearCart}
+          onAddToCart={addToCart}
+        />
+      )}
+
+      {/* ── AI Chat Sheet ── */}
+      {showChat && (
+        <AIChatSheet
+          slug={restaurant.slug}
+          itemMap={itemMap}
+          themeColor={restaurant.themeColor}
+          onClose={() => setShowChat(false)}
+          onViewItem={(item) => {
+            setShowChat(false);
+            setSelectedItem(item);
+          }}
         />
       )}
 

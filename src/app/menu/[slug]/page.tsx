@@ -56,12 +56,14 @@ export default async function PublicMenuPage({ params, searchParams }: Props) {
     reasoning: s.reasoning,
     items: s.itemIds.map((id) => itemMap[id]).filter((x): x is NonNullable<typeof x> => Boolean(x)),
     comboPrice: s.comboPrice ? Number(s.comboPrice) : null,
+    offerEndsAt: s.offerEndsAt ? s.offerEndsAt.toISOString() : null,
   }));
 
   return (
     <MenuPage
       restaurant={{
         id: restaurant.id,
+        slug: restaurant.slug,
         name: restaurant.name,
         logoUrl: restaurant.logoUrl,
         coverUrl: restaurant.coverUrl,

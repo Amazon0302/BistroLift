@@ -93,16 +93,17 @@ model Customer {
   @@index([smsSent, visitedAt])
 }
 
-// "addon" = pair two existing items, "combo" = bundle 2+ items at a price
+// "addon" | "combo" | "upgrade" | "special"
 model UpsellSuggestion {
   id           String     @id @default(cuid())
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  type         String     // "addon" | "combo"
+  type         String     // "addon" | "combo" | "upgrade" | "special"
   title        String
   reasoning    String
   itemIds      String[]   // IDs of MenuItem involved
   comboPrice   Decimal?   @db.Decimal(10, 2)
+  offerEndsAt  DateTime?  // null = always active; set = time-limited offer
   status       String     @default("pending") // "pending" | "approved" | "rejected"
   createdAt    DateTime   @default(now())
   reviewedAt   DateTime?

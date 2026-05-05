@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { generateUpsellSuggestions } from "@/lib/claude";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,15 +54,32 @@ export async function POST() {
     return NextResponse.json({ error: "Need at least 2 menu items to generate suggestions" }, { status: 400 });
   }
 
-  // Delete old pending suggestions before regenerating
+  const validItemIds = new Set(allItems.map((i) => i.id));
+
+  let suggestions;
+  try {
+    suggestions = await generateUpsellSuggestions(restaurant.name, allItems);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: `AI generation failed: ${msg}` }, { status: 500 });
+  }
+
+  // Filter out any suggestions where Claude hallucinated item IDs
+  const valid = suggestions.filter(
+    (s) => s.itemIds.length > 0 && s.itemIds.every((id) => validItemIds.has(id))
+  );
+
+  if (valid.length === 0) {
+    return NextResponse.json({ error: "AI returned no valid suggestions. Try again." }, { status: 500 });
+  }
+
+  // Delete old pending suggestions before saving new ones
   await prisma.upsellSuggestion.deleteMany({
     where: { restaurantId: restaurant.id, status: "pending" },
   });
 
-  const suggestions = await generateUpsellSuggestions(restaurant.name, allItems);
-
   const created = await prisma.upsellSuggestion.createMany({
-    data: suggestions.map((s) => ({
+    data: valid.map((s) => ({
       restaurantId: restaurant.id,
       type: s.type,
       title: s.title,
