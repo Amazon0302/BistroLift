@@ -43,6 +43,14 @@ interface Props {
   onAddToCart?: (item: CartItem, qty: number) => void;
 }
 
+const BG      = "#0F0D0A";
+const SURFACE = "#1A1714";
+const SURFACE2= "#211E1A";
+const BORDER  = "rgba(255,255,255,0.08)";
+const TEXT1   = "#F3EEE7";
+const TEXT2   = "#998F83";
+const TEXT3   = "#5E5852";
+
 export default function CartDrawer({
   entries, themeColor, tableId, restaurantName,
   combos = [], categoryNudges = [],
@@ -52,6 +60,7 @@ export default function CartDrawer({
   const [note, setNote] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const tc = themeColor;
 
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
 
@@ -60,8 +69,8 @@ export default function CartDrawer({
     setAddedIds((prev) => new Set([...prev, item.id]));
   }
 
-  // ── Combo upsell: find a combo where ≥2 items are already in cart ────────
   const cartIds = new Set(entries.map((e) => e.id));
+
   const comboUpsell = (() => {
     for (const combo of combos) {
       const inCart  = combo.items.filter((i) => cartIds.has(i.id));
@@ -75,7 +84,6 @@ export default function CartDrawer({
     return null;
   })();
 
-  // ── Category nudges: only show categories with no item in cart ────────────
   const activeNudges = categoryNudges.filter(
     (n) => !n.items.some((i) => cartIds.has(i.id))
   );
@@ -93,7 +101,7 @@ export default function CartDrawer({
         entries={entries}
         note={note}
         subtotal={subtotal}
-        themeColor={themeColor}
+        themeColor={tc}
         tableId={tableId}
         restaurantName={restaurantName}
         onClose={() => setShowSummary(false)}
@@ -106,45 +114,52 @@ export default function CartDrawer({
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
         onClick={close}
       />
 
       {/* Drawer */}
       <div
-        className={`relative bg-[#111] rounded-t-3xl flex flex-col max-h-[88vh] transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        className={`relative flex flex-col transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        style={{ backgroundColor: SURFACE, borderRadius: "28px 28px 0 0", maxHeight: "88vh" }}
       >
         {/* Handle + header */}
-        <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-white/[0.06]">
-          <div className="w-10 h-1 bg-zinc-600 rounded-full mx-auto mb-4" />
+        <div className="flex-shrink-0 px-5 pt-3 pb-3 border-b" style={{ borderColor: BORDER }}>
+          <div className="w-10 h-1 rounded-full mx-auto mb-3" style={{ backgroundColor: "rgba(255,255,255,0.18)" }} />
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-white">Your Order</h2>
-            <button onClick={close} className="text-zinc-500 hover:text-white text-sm transition-colors">
+            <div>
+              <h2 className="font-bold tracking-tight" style={{ fontSize: "18px", color: TEXT1, letterSpacing: "-0.3px" }}>Your Order</h2>
+              {tableId && <p className="mt-0.5 font-medium" style={{ fontSize: "12px", color: TEXT3 }}>Table #{tableId}</p>}
+            </div>
+            <button onClick={close} className="font-semibold transition-colors" style={{ fontSize: "13px", color: TEXT2 }}>
               Close
             </button>
           </div>
-          {tableId && (
-            <p className="text-xs text-zinc-500 mt-0.5">Table #{tableId}</p>
-          )}
         </div>
 
         {/* Items */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-3" style={{ backgroundColor: BG }}>
           {entries.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-5xl mb-3">🛒</p>
-              <p className="text-zinc-400 font-medium">Your order is empty</p>
-              <p className="text-zinc-600 text-sm mt-1">Tap any item to add it</p>
+              <p style={{ fontSize: "48px" }}>🛒</p>
+              <p className="font-bold mt-3" style={{ fontSize: "15px", color: TEXT1 }}>Your order is empty</p>
+              <p className="mt-1" style={{ fontSize: "13px", color: TEXT2 }}>Tap any item to add it</p>
             </div>
           ) : (
             entries.map((entry) => (
-              <div key={entry.id} className="flex items-center gap-3 bg-zinc-900 border border-white/[0.06] rounded-2xl p-3">
+              <div key={entry.id} className="flex items-center gap-3 p-3"
+                style={{ backgroundColor: SURFACE2, border: `1px solid ${BORDER}`, borderRadius: "16px" }}>
                 {entry.imageUrl
-                  ? <img src={entry.imageUrl} alt={entry.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
-                  : <div className="w-14 h-14 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0 text-2xl">🍽️</div>}
+                  ? <img src={entry.imageUrl} alt={entry.name} className="object-cover flex-shrink-0" style={{ width: "56px", height: "56px", borderRadius: "12px" }} />
+                  : (
+                    <div className="flex items-center justify-center flex-shrink-0" style={{ width: "56px", height: "56px", borderRadius: "12px", background: `${tc}15`, fontSize: "22px" }}>
+                      🍽️
+                    </div>
+                  )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-sm truncate">{entry.name}</p>
-                  <p className="text-xs font-bold mt-0.5" style={{ color: themeColor }}>
+                  <p className="font-semibold truncate" style={{ fontSize: "13px", color: TEXT1 }}>{entry.name}</p>
+                  <p className="font-bold mt-0.5" style={{ fontSize: "13px", color: tc }}>
                     ${(entry.price * entry.quantity).toFixed(2)}
                   </p>
                 </div>
@@ -152,15 +167,16 @@ export default function CartDrawer({
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => entry.quantity <= 1 ? onRemove(entry.id) : onUpdateQty(entry.id, entry.quantity - 1)}
-                    className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-white text-base font-bold hover:bg-zinc-700 transition-colors"
+                    className="flex items-center justify-center font-bold"
+                    style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: SURFACE, border: `1px solid ${BORDER}`, fontSize: "14px", color: TEXT2 }}
                   >
                     {entry.quantity <= 1 ? "🗑" : "−"}
                   </button>
-                  <span className="text-white font-bold text-sm w-4 text-center">{entry.quantity}</span>
+                  <span className="font-bold text-center" style={{ width: "16px", fontSize: "14px", color: TEXT1 }}>{entry.quantity}</span>
                   <button
                     onClick={() => onUpdateQty(entry.id, entry.quantity + 1)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-black text-base font-bold transition-colors"
-                    style={{ backgroundColor: themeColor }}
+                    className="flex items-center justify-center text-white font-bold"
+                    style={{ width: "32px", height: "32px", borderRadius: "10px", fontSize: "18px", backgroundColor: tc }}
                   >
                     +
                   </button>
@@ -169,40 +185,38 @@ export default function CartDrawer({
             ))
           )}
 
-          {/* ── Combo upsell ── */}
+          {/* Combo upsell */}
           {comboUpsell && entries.length > 0 && (
-            <div className="mt-3 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-3.5">
-              <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-                🎁 Almost a combo!
-              </p>
-              <p className="text-white text-sm font-semibold leading-snug">
-                {comboUpsell.combo.title}
-              </p>
-              <p className="text-zinc-400 text-xs mt-0.5 mb-3">{comboUpsell.combo.reasoning}</p>
+            <div className="p-3.5 rounded-2xl" style={{ border: "1px solid rgba(217,119,6,0.30)", backgroundColor: "rgba(217,119,6,0.10)" }}>
+              <p className="font-bold uppercase tracking-wider mb-2" style={{ fontSize: "11px", color: "#F59E0B" }}>🎁 Almost a combo!</p>
+              <p className="font-bold leading-snug" style={{ fontSize: "13px", color: TEXT1 }}>{comboUpsell.combo.title}</p>
+              <p className="mt-0.5 mb-3" style={{ fontSize: "12px", color: TEXT2 }}>{comboUpsell.combo.reasoning}</p>
               <div className="flex flex-col gap-2">
                 {comboUpsell.missing.map((item) => {
                   const added = addedIds.has(item.id);
                   return (
                     <div key={item.id} className="flex items-center gap-2.5">
                       {item.imageUrl
-                        ? <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
-                        : <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0 text-lg">🍽️</div>}
+                        ? <img src={item.imageUrl} alt={item.name} className="object-cover flex-shrink-0" style={{ width: "40px", height: "40px", borderRadius: "10px" }} />
+                        : <div className="flex items-center justify-center flex-shrink-0" style={{ width: "40px", height: "40px", borderRadius: "10px", backgroundColor: "rgba(217,119,6,0.15)", fontSize: "16px" }}>🍽️</div>}
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-xs font-semibold truncate">{item.name}</p>
-                        <p className="text-zinc-500 text-xs">${item.price.toFixed(2)}</p>
+                        <p className="font-bold truncate" style={{ fontSize: "12px", color: TEXT1 }}>{item.name}</p>
+                        <p style={{ fontSize: "11px", color: TEXT2 }}>${item.price.toFixed(2)}</p>
                       </div>
                       {comboUpsell.savings > 0.01 && (
-                        <span className="text-emerald-400 text-xs font-bold flex-shrink-0">
+                        <span className="font-bold flex-shrink-0" style={{ fontSize: "11px", color: "#22C55E" }}>
                           Save ${comboUpsell.savings.toFixed(2)}
                         </span>
                       )}
                       <button
                         onClick={() => quickAdd(item)}
                         disabled={added}
-                        className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-60"
-                        style={added ? { backgroundColor: "#22c55e22", color: "#4ade80" } : { backgroundColor: themeColor, color: "#000" }}
+                        className="flex-shrink-0 font-bold px-3 py-1.5 rounded-full transition-all active:scale-95 disabled:opacity-60"
+                        style={added
+                          ? { backgroundColor: "rgba(34,197,94,0.15)", color: "#22C55E", fontSize: "12px", border: "1px solid rgba(34,197,94,0.25)" }
+                          : { backgroundColor: tc, color: "#fff", fontSize: "12px" }}
                       >
-                        {added ? "✓ Added" : "+ Add"}
+                        {added ? "✓" : "+ Add"}
                       </button>
                     </div>
                   );
@@ -211,33 +225,37 @@ export default function CartDrawer({
             </div>
           )}
 
-          {/* ── Drink / dessert nudges ── */}
+          {/* Drink / dessert nudges */}
           {activeNudges.length > 0 && entries.length > 0 && (
-            <div className="mt-3">
+            <div>
               {activeNudges.map((nudge) => (
                 <div key={nudge.categoryName} className="mb-3">
-                  <p className="text-zinc-400 text-xs font-semibold mb-2">
+                  <p className="font-semibold mb-2" style={{ fontSize: "12px", color: TEXT2 }}>
                     {nudge.emoji ?? "🍹"} Add {nudge.categoryName}?
                   </p>
-                  <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1" style={{ scrollbarWidth: "none" }}>
+                  <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
                     {nudge.items.slice(0, 5).map((item) => {
                       const added = addedIds.has(item.id) || cartIds.has(item.id);
                       return (
-                        <div
-                          key={item.id}
-                          className="flex-shrink-0 w-28 bg-zinc-900 border border-white/[0.06] rounded-2xl overflow-hidden"
-                        >
+                        <div key={item.id} className="flex-shrink-0 overflow-hidden"
+                          style={{ width: "112px", backgroundColor: SURFACE2, border: `1px solid ${BORDER}`, borderRadius: "14px" }}>
                           {item.imageUrl
-                            ? <img src={item.imageUrl} alt={item.name} className="w-full h-16 object-cover" />
-                            : <div className="w-full h-16 bg-zinc-800 flex items-center justify-center text-2xl">{nudge.emoji ?? "🍹"}</div>}
+                            ? <img src={item.imageUrl} alt={item.name} className="w-full object-cover" style={{ height: "64px" }} />
+                            : (
+                              <div className="w-full flex items-center justify-center" style={{ height: "64px", background: `${tc}15`, fontSize: "24px" }}>
+                                {nudge.emoji ?? "🍹"}
+                              </div>
+                            )}
                           <div className="p-2">
-                            <p className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{item.name}</p>
-                            <p className="text-zinc-500 text-[10px] mt-0.5">${item.price.toFixed(2)}</p>
+                            <p className="font-bold leading-tight line-clamp-2" style={{ fontSize: "11px", color: TEXT1 }}>{item.name}</p>
+                            <p className="mt-0.5" style={{ fontSize: "10px", color: TEXT2 }}>${item.price.toFixed(2)}</p>
                             <button
                               onClick={() => quickAdd(item)}
                               disabled={added}
-                              className="mt-1.5 w-full text-[11px] font-bold py-1 rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                              style={added ? { backgroundColor: "#22c55e22", color: "#4ade80" } : { backgroundColor: `${themeColor}22`, color: themeColor }}
+                              className="mt-1.5 w-full font-bold py-1 rounded-full transition-all active:scale-95 disabled:opacity-50"
+                              style={added
+                                ? { backgroundColor: "rgba(34,197,94,0.15)", color: "#22C55E", fontSize: "11px" }
+                                : { backgroundColor: tc, color: "#fff", fontSize: "11px" }}
                             >
                               {added ? "✓" : "+"}
                             </button>
@@ -253,36 +271,43 @@ export default function CartDrawer({
 
           {/* Special requests */}
           {entries.length > 0 && (
-            <div className="mt-2">
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Any special requests? (allergies, preferences…)"
-                rows={2}
-                className="w-full bg-zinc-900 border border-white/[0.07] rounded-2xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 resize-none transition-colors"
-              />
-            </div>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Any special requests? (allergies, preferences…)"
+              rows={2}
+              className="w-full focus:outline-none resize-none transition-colors"
+              style={{
+                backgroundColor: SURFACE2,
+                border: `1px solid ${BORDER}`,
+                borderRadius: "14px",
+                padding: "12px 16px",
+                fontSize: "13px",
+                color: TEXT1,
+              }}
+            />
           )}
         </div>
 
         {/* Footer */}
         {entries.length > 0 && (
-          <div className="flex-shrink-0 px-5 py-4 border-t border-white/[0.06] space-y-3">
+          <div className="flex-shrink-0 px-5 py-4 space-y-3" style={{ backgroundColor: SURFACE, borderTop: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between">
-              <span className="text-zinc-400 text-sm">Subtotal</span>
-              <span className="text-white font-extrabold text-lg">${subtotal.toFixed(2)}</span>
+              <span className="font-medium" style={{ fontSize: "14px", color: TEXT2 }}>Subtotal</span>
+              <span className="font-bold tracking-tight" style={{ fontSize: "22px", color: TEXT1, letterSpacing: "-0.4px" }}>${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowSummary(true)}
-                className="flex-1 py-3.5 rounded-xl font-bold text-black text-base transition-colors"
-                style={{ backgroundColor: themeColor }}
+                className="flex-1 rounded-full font-bold text-white transition-all active:scale-[0.98]"
+                style={{ paddingTop: "14px", paddingBottom: "14px", fontSize: "15px", backgroundColor: tc, boxShadow: `0 6px 20px ${tc}44` }}
               >
                 🧾 Show to Waiter
               </button>
               <button
                 onClick={() => setShowSummary(true)}
-                className="px-4 py-3.5 rounded-xl font-bold text-white text-sm bg-zinc-800 border border-white/[0.08] hover:bg-zinc-700 transition-colors"
+                className="rounded-full font-bold transition-colors"
+                style={{ paddingLeft: "16px", paddingRight: "16px", paddingTop: "14px", paddingBottom: "14px", fontSize: "13px", color: TEXT2, backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}
               >
                 🔔 Call
               </button>

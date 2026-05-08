@@ -80,7 +80,7 @@ RULES:
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-opus-4-7",
+      model: "claude-haiku-4-5",
       max_tokens: 1024,
       system: systemPrompt,
       messages: apiMessages,
@@ -107,6 +107,6 @@ RULES:
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[chat] Claude error:", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: "Our assistant is unavailable right now. Please try again in a moment." }, { status: 500 });
   }
 }

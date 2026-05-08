@@ -33,6 +33,14 @@ interface Props {
   onViewItem: (item: MenuItem) => void;
 }
 
+const BG      = "#0F0D0A";
+const SURFACE = "#1A1714";
+const SURFACE2= "#211E1A";
+const BORDER  = "rgba(255,255,255,0.08)";
+const TEXT1   = "#F3EEE7";
+const TEXT2   = "#998F83";
+const TEXT3   = "#5E5852";
+
 const QUICK_PROMPTS = [
   { label: "Light & healthy 🥗", value: "I want something light and healthy" },
   { label: "Comfort food 🍝",    value: "I'm in the mood for something hearty and comforting" },
@@ -51,6 +59,7 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const tc = themeColor;
 
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
 
@@ -84,15 +93,10 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({})) as { error?: string };
-        console.error("[AIChatSheet] API error", res.status, errBody.error);
         throw new Error(errBody.error ?? `HTTP ${res.status}`);
       }
 
-      const data = await res.json() as {
-        message: string;
-        suggestions: ChatSuggestion[];
-      };
-
+      const data = await res.json() as { message: string; suggestions: ChatSuggestion[] };
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.message, suggestions: data.suggestions ?? [] },
@@ -114,68 +118,59 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
     <div className="fixed inset-0 z-[55] flex flex-col justify-end">
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
         onClick={close}
       />
 
       {/* Sheet */}
       <div
-        className={`relative bg-[#111] rounded-t-3xl flex flex-col max-h-[88vh] transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        className={`relative flex flex-col transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        style={{ backgroundColor: SURFACE, borderRadius: "28px 28px 0 0", maxHeight: "88vh" }}
       >
         {/* Header */}
-        <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-white/[0.06]">
-          <div className="w-10 h-1 bg-zinc-600 rounded-full mx-auto mb-4" />
+        <div className="flex-shrink-0 px-5 pt-3 pb-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
+          <div className="w-10 h-1 rounded-full mx-auto mb-3" style={{ backgroundColor: "rgba(255,255,255,0.18)" }} />
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
-                style={{ backgroundColor: `${themeColor}20`, border: `1px solid ${themeColor}40` }}
-              >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${tc}18`, border: `1.5px solid ${tc}28`, fontSize: "18px" }}>
                 🤖
               </div>
               <div>
-                <p className="text-white font-bold text-sm leading-none">Menu Assistant</p>
-                <p className="text-zinc-500 text-xs mt-0.5">AI-powered suggestions</p>
+                <p className="font-bold leading-none" style={{ fontSize: "14px", color: TEXT1 }}>Menu Assistant</p>
+                <p className="mt-0.5" style={{ fontSize: "11px", color: TEXT3 }}>AI-powered suggestions</p>
               </div>
             </div>
-            <button onClick={close} className="text-zinc-500 hover:text-white text-sm transition-colors">
+            <button onClick={close} className="font-semibold transition-colors" style={{ fontSize: "13px", color: TEXT2 }}>
               Close
             </button>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4" style={{ backgroundColor: BG }}>
           {messages.map((msg, i) => (
             <div key={i}>
               {msg.role === "user" ? (
-                /* User bubble */
                 <div className="flex justify-end">
-                  <div
-                    className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md text-sm font-medium text-black"
-                    style={{ backgroundColor: themeColor }}
-                  >
+                  <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md text-white font-medium" style={{ fontSize: "13px", backgroundColor: tc }}>
                     {msg.content}
                   </div>
                 </div>
               ) : (
-                /* Assistant bubble + suggestion cards */
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start gap-2.5">
-                    <div
-                      className="w-7 h-7 rounded-xl flex items-center justify-center text-sm flex-shrink-0 mt-0.5"
-                      style={{ backgroundColor: `${themeColor}20` }}
-                    >
+                    <div className="flex items-center justify-center flex-shrink-0 mt-0.5" style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: `${tc}18`, fontSize: "14px" }}>
                       🤖
                     </div>
-                    <div className="flex-1 bg-zinc-900 border border-white/[0.06] rounded-2xl rounded-tl-md px-4 py-2.5">
-                      <p className="text-zinc-200 text-sm leading-relaxed">{msg.content}</p>
+                    <div className="flex-1 rounded-2xl rounded-tl-md px-4 py-2.5" style={{ backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}>
+                      <p className="leading-relaxed" style={{ fontSize: "13px", color: TEXT2 }}>{msg.content}</p>
                     </div>
                   </div>
 
                   {/* Suggestion cards */}
                   {(msg.suggestions ?? []).length > 0 && (
-                    <div className="ml-9 space-y-2">
+                    <div className="ml-10 space-y-2">
                       {(msg.suggestions ?? []).map((s) => {
                         const item = itemMap[s.id];
                         if (!item) return null;
@@ -183,31 +178,23 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
                           <button
                             key={s.id}
                             onClick={() => { onViewItem(item); close(); }}
-                            className="w-full flex items-center gap-3 bg-zinc-900 border border-white/[0.07] hover:border-white/20 rounded-2xl p-3 text-left active:scale-[0.98] transition-all"
+                            className="w-full flex items-center gap-3 text-left active:scale-[0.98] transition-all"
+                            style={{ backgroundColor: SURFACE2, border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "10px 12px" }}
                           >
-                            {/* Image or emoji */}
                             {item.imageUrl ? (
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
-                              />
+                              <img src={item.imageUrl} alt={item.name} className="object-cover flex-shrink-0" style={{ width: "52px", height: "52px", borderRadius: "10px" }} />
                             ) : (
-                              <div className="w-14 h-14 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0 text-2xl">
+                              <div className="flex items-center justify-center flex-shrink-0" style={{ width: "52px", height: "52px", borderRadius: "10px", background: `${tc}15`, fontSize: "22px" }}>
                                 🍽️
                               </div>
                             )}
-
                             <div className="flex-1 min-w-0">
-                              <p className="text-white font-semibold text-sm truncate">{item.name}</p>
-                              <p className="text-zinc-500 text-xs mt-0.5 leading-snug line-clamp-2">{s.reason}</p>
+                              <p className="font-bold truncate" style={{ fontSize: "13px", color: TEXT1 }}>{item.name}</p>
+                              <p className="mt-0.5 line-clamp-2 leading-snug" style={{ fontSize: "11px", color: TEXT3 }}>{s.reason}</p>
                             </div>
-
                             <div className="flex-shrink-0 text-right">
-                              <p className="font-extrabold text-sm" style={{ color: themeColor }}>
-                                ${item.price.toFixed(2)}
-                              </p>
-                              <p className="text-zinc-600 text-[10px] mt-0.5">View →</p>
+                              <p className="font-bold" style={{ fontSize: "13px", color: tc }}>${item.price.toFixed(2)}</p>
+                              <p className="mt-0.5" style={{ fontSize: "10px", color: TEXT3 }}>View →</p>
                             </div>
                           </button>
                         );
@@ -219,20 +206,17 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
             </div>
           ))}
 
-          {/* Loading indicator */}
+          {/* Loading dots */}
           {loading && (
             <div className="flex items-start gap-2.5">
-              <div
-                className="w-7 h-7 rounded-xl flex items-center justify-center text-sm flex-shrink-0"
-                style={{ backgroundColor: `${themeColor}20` }}
-              >
+              <div className="flex items-center justify-center flex-shrink-0" style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: `${tc}18`, fontSize: "14px" }}>
                 🤖
               </div>
-              <div className="bg-zinc-900 border border-white/[0.06] rounded-2xl rounded-tl-md px-4 py-3">
+              <div className="rounded-2xl rounded-tl-md px-4 py-3" style={{ backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}>
                 <div className="flex gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  {[0, 150, 300].map((delay) => (
+                    <span key={delay} className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: TEXT3, animationDelay: `${delay}ms` }} />
+                  ))}
                 </div>
               </div>
             </div>
@@ -241,14 +225,15 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
           <div ref={bottomRef} />
         </div>
 
-        {/* Quick-start prompts (only before first user message) */}
+        {/* Quick prompts */}
         {!hasUserMessages && (
-          <div className="flex-shrink-0 px-4 pb-3 flex flex-wrap gap-2">
+          <div className="flex-shrink-0 px-4 py-3 flex flex-wrap gap-2" style={{ backgroundColor: BG, borderTop: `1px solid ${BORDER}` }}>
             {QUICK_PROMPTS.map((p) => (
               <button
                 key={p.value}
                 onClick={() => send(p.value)}
-                className="text-xs px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 border border-white/[0.08] text-zinc-300 transition-colors"
+                className="font-semibold px-3 py-1.5 rounded-full transition-colors"
+                style={{ fontSize: "12px", color: TEXT2, backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}
               >
                 {p.label}
               </button>
@@ -257,8 +242,8 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
         )}
 
         {/* Input */}
-        <div className="flex-shrink-0 px-4 py-4 border-t border-white/[0.06]">
-          <div className="flex items-center gap-2.5 bg-zinc-900 border border-white/[0.08] rounded-2xl px-4 py-2.5">
+        <div className="flex-shrink-0 px-4 py-4" style={{ backgroundColor: SURFACE, borderTop: `1px solid ${BORDER}` }}>
+          <div className="flex items-center gap-2.5 rounded-full px-4 py-2.5" style={{ backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}>
             <input
               type="text"
               value={input}
@@ -266,13 +251,14 @@ export default function AIChatSheet({ slug, itemMap, themeColor, onClose, onView
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send(input)}
               placeholder="Tell me your mood or preference…"
               disabled={loading}
-              className="flex-1 bg-transparent text-white text-sm placeholder:text-zinc-600 focus:outline-none disabled:opacity-50"
+              className="flex-1 bg-transparent focus:outline-none disabled:opacity-50"
+              style={{ fontSize: "13px", color: TEXT1 }}
             />
             <button
               onClick={() => send(input)}
               disabled={!input.trim() || loading}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-black text-base font-bold transition-all disabled:opacity-30 active:scale-95"
-              style={{ backgroundColor: themeColor }}
+              className="flex items-center justify-center text-white font-bold transition-all disabled:opacity-30 active:scale-95"
+              style={{ width: "32px", height: "32px", borderRadius: "50%", fontSize: "16px", backgroundColor: tc, boxShadow: input.trim() ? `0 3px 10px ${tc}44` : "none" }}
             >
               ↑
             </button>

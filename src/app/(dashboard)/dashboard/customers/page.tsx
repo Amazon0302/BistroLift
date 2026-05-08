@@ -33,8 +33,8 @@ export default async function CustomersPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">Customers</h2>
-        <p className="text-zinc-400 mt-1">Contact data collected from menu scans</p>
+        <h2 className="text-[26px] font-extrabold text-gray-900">Customers</h2>
+        <p className="text-gray-400 text-[14px] mt-1">Contact data collected from menu scans</p>
       </div>
       <CustomersTable customers={serialized} />
     </div>

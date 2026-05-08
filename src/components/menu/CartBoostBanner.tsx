@@ -23,70 +23,66 @@ interface Props {
   onDismiss: () => void;
 }
 
+const SURFACE = "#1A1714";
+const BORDER  = "rgba(255,255,255,0.08)";
+const TEXT1   = "#F3EEE7";
+const TEXT2   = "#998F83";
+
 export default function CartBoostBanner({ suggestion, themeColor, onAdd, onDismiss }: Props) {
   const [added, setAdded] = useState(false);
+  const tc = themeColor;
 
   function handleAdd() {
     setAdded(true);
     onAdd(
-      {
-        id: suggestion.boostItem.id,
-        name: suggestion.boostItem.name,
-        price: suggestion.boostItem.price,
-        imageUrl: suggestion.boostItem.imageUrl,
-      },
+      { id: suggestion.boostItem.id, name: suggestion.boostItem.name, price: suggestion.boostItem.price, imageUrl: suggestion.boostItem.imageUrl },
       1
     );
     setTimeout(onDismiss, 1200);
   }
 
   return (
-    <div
-      className="fixed bottom-[4.5rem] left-3 right-3 z-30 animate-in slide-in-from-bottom-4 duration-400"
-      style={{ maxWidth: "calc(100vw - 24px)" }}
-    >
-      <div
-        className="flex items-center gap-3 px-3 py-2.5 rounded-2xl border border-white/10 shadow-2xl"
-        style={{ background: "rgba(20,20,20,0.96)", backdropFilter: "blur(20px)" }}
-      >
+    <div className="fixed z-30 animate-in slide-in-from-bottom-4 duration-400"
+      style={{ bottom: "76px", left: "12px", right: "12px", maxWidth: "calc(100vw - 24px)" }}>
+      <div className="flex items-center gap-3 px-3 py-2.5"
+        style={{ backgroundColor: SURFACE, borderRadius: "18px", border: `1px solid ${BORDER}`, boxShadow: "0 8px 32px rgba(0,0,0,0.40), 0 2px 8px rgba(0,0,0,0.20)" }}>
+
         {suggestion.boostItem.imageUrl ? (
-          <img
-            src={suggestion.boostItem.imageUrl}
-            alt={suggestion.boostItem.name}
-            className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
-          />
+          <img src={suggestion.boostItem.imageUrl} alt={suggestion.boostItem.name}
+            className="object-cover flex-shrink-0" style={{ width: "48px", height: "48px", borderRadius: "12px" }} />
         ) : (
-          <div
-            className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-xl"
-            style={{ backgroundColor: `${themeColor}22` }}
-          >
+          <div className="flex-shrink-0 flex items-center justify-center" style={{ width: "48px", height: "48px", borderRadius: "12px", backgroundColor: `${tc}18`, fontSize: "20px" }}>
             🍽️
           </div>
         )}
 
         <div className="flex-1 min-w-0">
-          <p className="text-white font-bold text-sm leading-tight truncate">{suggestion.boostItem.name}</p>
-          <p className="text-zinc-400 text-[11px] mt-0.5 leading-snug line-clamp-1">{suggestion.reasoning}</p>
+          <p className="font-bold leading-tight truncate" style={{ fontSize: "13px", color: TEXT1 }}>{suggestion.boostItem.name}</p>
+          <p className="mt-0.5 line-clamp-1" style={{ fontSize: "11px", color: TEXT2 }}>{suggestion.reasoning}</p>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-sm font-bold" style={{ color: themeColor }}>
+          <span className="font-bold" style={{ fontSize: "13px", color: tc }}>
             +${suggestion.boostItem.price.toFixed(2)}
           </span>
           {added ? (
-            <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
+            <span className="font-bold px-3 py-1.5 rounded-full" style={{ fontSize: "11px", color: "#22C55E", backgroundColor: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.25)" }}>
               ✓ Added
             </span>
           ) : (
             <button
               onClick={handleAdd}
-              className="text-xs font-bold px-3 py-1.5 rounded-xl transition-transform active:scale-95"
-              style={{ backgroundColor: themeColor, color: "#000" }}
+              className="font-bold px-3 py-1.5 rounded-full text-white transition-transform active:scale-95"
+              style={{ fontSize: "12px", backgroundColor: tc }}
             >
               Add it
             </button>
           )}
-          <button onClick={onDismiss} className="text-zinc-500 hover:text-zinc-300 text-lg leading-none p-0.5">
+          <button
+            onClick={onDismiss}
+            className="transition-colors p-0.5 leading-none"
+            style={{ fontSize: "18px", color: TEXT2 }}
+          >
             ×
           </button>
         </div>

@@ -41,19 +41,28 @@ interface Props {
   cartQty: number;
 }
 
-const BADGE_CONFIG: Record<string, { label: string; emoji: string; bg: string }> = {
-  popular: { label: "Bestseller",  emoji: "🔥", bg: "bg-red-500/80"    },
-  chef:    { label: "Chef's Pick", emoji: "👨‍🍳", bg: "bg-amber-500/80"  },
-  new:     { label: "New",         emoji: "✨", bg: "bg-purple-500/80" },
-  spicy:   { label: "Spicy",       emoji: "🌶️", bg: "bg-orange-500/80" },
-  vegan:   { label: "Vegan",       emoji: "🌿", bg: "bg-green-500/80"  },
+const BADGE_CONFIG: Record<string, { label: string; emoji: string; color: string }> = {
+  popular: { label: "Bestseller",  emoji: "🔥", color: "#EF4444" },
+  chef:    { label: "Chef's Pick", emoji: "👨‍🍳", color: "#F59E0B" },
+  new:     { label: "New",         emoji: "✨", color: "#8B5CF6" },
+  spicy:   { label: "Spicy",       emoji: "🌶️", color: "#F97316" },
+  vegan:   { label: "Vegan",       emoji: "🌿", color: "#22C55E" },
 };
+
+const BG      = "#0F0D0A";
+const SURFACE = "#1A1714";
+const SURFACE2= "#211E1A";
+const BORDER  = "rgba(255,255,255,0.08)";
+const TEXT1   = "#F3EEE7";
+const TEXT2   = "#998F83";
+const TEXT3   = "#5E5852";
 
 export default function ItemDetailSheet({
   item, allSuggestions, themeColor, onClose, onAddToCart, onViewCombo, onViewItem, cartQty,
 }: Props) {
   const [qty, setQty] = useState(Math.max(1, cartQty));
   const [visible, setVisible] = useState(false);
+  const tc = themeColor;
 
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
 
@@ -81,35 +90,51 @@ export default function ItemDetailSheet({
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
         onClick={close}
       />
 
       {/* Sheet */}
       <div
-        className={`relative bg-[#111] rounded-t-3xl overflow-hidden max-h-[92vh] flex flex-col transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        className={`relative flex flex-col transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        style={{ backgroundColor: SURFACE, borderRadius: "28px 28px 0 0", maxHeight: "92vh", overflow: "hidden" }}
       >
-        {/* ── Image ── */}
-        <div className="relative h-64 flex-shrink-0 overflow-hidden">
-          {item.imageUrl
-            ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-            : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-7xl">🍽️</div>}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/20 to-transparent" />
+        {/* Drag handle */}
+        <div className="absolute top-0 left-0 right-0 z-10 flex justify-center pt-3">
+          <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.18)" }} />
+        </div>
 
+        {/* ── Image ── */}
+        <div className="relative flex-shrink-0 overflow-hidden" style={{ height: "280px" }}>
+          {item.imageUrl ? (
+            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center" style={{ fontSize: "80px", background: `linear-gradient(135deg, ${tc}22, ${tc}0C)` }}>
+              🍽️
+            </div>
+          )}
+          {/* Gradient fade to surface */}
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${SURFACE} 0%, rgba(26,23,20,0.15) 45%, transparent 100%)` }} />
+
+          {/* Close */}
           <button
             onClick={close}
-            className="absolute top-4 right-4 w-9 h-9 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white text-lg border border-white/10"
+            className="absolute flex items-center justify-center font-medium transition-colors"
+            style={{ top: "16px", right: "16px", width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "rgba(15,13,10,0.70)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, fontSize: "14px", color: TEXT2 }}
           >
             ✕
           </button>
 
+          {/* Badges */}
           {item.badges.length > 0 && (
-            <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
+            <div className="absolute flex flex-wrap gap-1.5" style={{ top: "16px", left: "16px" }}>
               {item.badges.map((badge) => {
                 const cfg = BADGE_CONFIG[badge];
                 if (!cfg) return null;
                 return (
-                  <span key={badge} className={`text-[11px] font-bold px-2 py-0.5 rounded-full text-white backdrop-blur-sm ${cfg.bg}`}>
+                  <span key={badge} className="font-bold px-2.5 py-1 rounded-full leading-none"
+                    style={{ fontSize: "11px", backgroundColor: `${cfg.color}22`, color: cfg.color, border: `1px solid ${cfg.color}35` }}>
                     {cfg.emoji} {cfg.label}
                   </span>
                 );
@@ -117,10 +142,11 @@ export default function ItemDetailSheet({
             </div>
           )}
 
+          {/* Name + price overlay */}
           <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
             <div className="flex items-end justify-between gap-3">
-              <h2 className="text-2xl font-extrabold text-white leading-tight">{item.name}</h2>
-              <span className="text-2xl font-extrabold flex-shrink-0" style={{ color: themeColor }}>
+              <h2 className="font-bold leading-tight tracking-tight" style={{ fontSize: "22px", color: TEXT1, letterSpacing: "-0.4px" }}>{item.name}</h2>
+              <span className="font-bold flex-shrink-0" style={{ fontSize: "22px", color: tc }}>
                 ${item.price.toFixed(2)}
               </span>
             </div>
@@ -128,22 +154,21 @@ export default function ItemDetailSheet({
         </div>
 
         {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto overscroll-contain">
-          <div className="px-5 pt-4 pb-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain" style={{ backgroundColor: BG }}>
+          <div className="px-5 pt-4 pb-6 space-y-5">
 
             {item.description && (
-              <p className="text-zinc-300 text-sm leading-relaxed">{item.description}</p>
+              <p className="leading-relaxed" style={{ fontSize: "14px", color: TEXT2 }}>{item.description}</p>
             )}
 
             {/* Ingredients */}
             {(item.ingredients ?? []).length > 0 && (
               <div>
-                <h3 className="text-xs uppercase tracking-widest font-semibold text-zinc-500 mb-2.5">
-                  Ingredients
-                </h3>
+                <h3 className="font-bold uppercase tracking-widest mb-2.5" style={{ fontSize: "11px", color: TEXT3 }}>Ingredients</h3>
                 <div className="flex flex-wrap gap-2">
                   {(item.ingredients ?? []).map((ing) => (
-                    <span key={ing} className="text-xs text-zinc-300 bg-zinc-800/70 border border-white/[0.07] px-3 py-1.5 rounded-full">
+                    <span key={ing} className="font-medium px-3 py-1.5 rounded-full"
+                      style={{ fontSize: "12px", color: TEXT1, backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}>
                       {ing}
                     </span>
                   ))}
@@ -153,28 +178,22 @@ export default function ItemDetailSheet({
 
             {/* Upgrade nudge */}
             {upgrade && upgrade.comboPrice != null && upgrade.comboPrice > 0 && (
-              <div
-                className="flex items-center gap-3 p-3.5 rounded-2xl border"
-                style={{ borderColor: `${themeColor}40`, backgroundColor: `${themeColor}10` }}
-              >
-                <span className="text-2xl">⬆️</span>
+              <div className="flex items-center gap-3 p-3.5 rounded-2xl"
+                style={{ border: `1px solid ${tc}28`, backgroundColor: `${tc}0C` }}>
+                <span style={{ fontSize: "22px" }}>⬆️</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-sm">{upgrade.title}</p>
-                  <p className="text-zinc-400 text-xs mt-0.5">{upgrade.reasoning}</p>
+                  <p className="font-bold" style={{ fontSize: "13px", color: TEXT1 }}>{upgrade.title}</p>
+                  <p className="mt-0.5" style={{ fontSize: "12px", color: TEXT3 }}>{upgrade.reasoning}</p>
                 </div>
-                <span className="text-sm font-extrabold flex-shrink-0" style={{ color: themeColor }}>
-                  +${upgrade.comboPrice.toFixed(2)}
-                </span>
+                <span className="font-bold flex-shrink-0" style={{ fontSize: "14px", color: tc }}>+${upgrade.comboPrice.toFixed(2)}</span>
               </div>
             )}
 
-            {/* ── Combo deals — CLICKABLE ── */}
+            {/* Combo deals */}
             {relatedCombos.length > 0 && (
               <div>
-                <h3 className="text-xs uppercase tracking-widest font-semibold text-zinc-500 mb-3">
-                  🎁 Best Value Deals
-                </h3>
-                <div className="space-y-3">
+                <h3 className="font-bold uppercase tracking-widest mb-3" style={{ fontSize: "11px", color: TEXT3 }}>🎁 Best Value Deals</h3>
+                <div className="space-y-2.5">
                   {relatedCombos.map((combo) => {
                     const originalTotal = combo.items.reduce((s, i) => s + i.price, 0);
                     const savings = combo.comboPrice != null ? originalTotal - combo.comboPrice : 0;
@@ -183,54 +202,51 @@ export default function ItemDetailSheet({
                       <button
                         key={combo.id}
                         onClick={() => onViewCombo(combo)}
-                        className="w-full text-left bg-zinc-900 border border-white/[0.07] rounded-2xl overflow-hidden active:scale-[0.98] transition-transform"
+                        className="w-full text-left overflow-hidden active:scale-[0.98] transition-transform"
+                        style={{ borderRadius: "16px", backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}
                       >
-                        {/* Split mini images */}
                         {combo.items.some((i) => i.imageUrl) && (
-                          <div className="flex h-20 relative">
+                          <div className="flex relative" style={{ height: "76px" }}>
                             {combo.items.slice(0, 3).map((ci, idx) => (
                               <div key={ci.id} className="flex-1 overflow-hidden relative">
                                 {ci.imageUrl
                                   ? <img src={ci.imageUrl} alt={ci.name} className="w-full h-full object-cover" />
-                                  : <div className="w-full h-full bg-zinc-800" />}
+                                  : <div className="w-full h-full flex items-center justify-center text-xl" style={{ backgroundColor: SURFACE }}>🍽️</div>}
                                 {idx < combo.items.length - 1 && (
-                                  <div className="absolute top-0 right-0 bottom-0 w-px bg-black/40" />
+                                  <div className="absolute top-0 right-0 bottom-0 w-px" style={{ backgroundColor: BORDER }} />
                                 )}
                               </div>
                             ))}
-                            {/* Savings badge */}
                             {savings > 0.01 && (
-                              <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full shadow">
+                              <span className="absolute top-2 left-2 text-white font-bold px-2 py-0.5 rounded-full" style={{ fontSize: "10px", backgroundColor: "#22C55E" }}>
                                 Save ${savings.toFixed(2)}
                               </span>
                             )}
-                            {/* Tap hint */}
-                            <span className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full border border-white/10">
-                              View deal →
+                            <span className="absolute top-2 right-2 font-medium px-2 py-0.5 rounded-full" style={{ fontSize: "10px", color: TEXT2, backgroundColor: "rgba(15,13,10,0.70)", border: `1px solid ${BORDER}` }}>
+                              View →
                             </span>
                           </div>
                         )}
                         <div className="p-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
-                              <p className="text-white font-bold text-sm">{combo.title}</p>
-                              <p className="text-zinc-500 text-[11px] mt-0.5">{combo.reasoning}</p>
-                              <div className="flex flex-wrap gap-1 mt-2">
+                              <p className="font-bold" style={{ fontSize: "13px", color: TEXT1 }}>{combo.title}</p>
+                              <p className="mt-0.5" style={{ fontSize: "11px", color: TEXT3 }}>{combo.reasoning}</p>
+                              <div className="flex flex-wrap gap-1 mt-1.5">
                                 {combo.items.map((ci) => (
-                                  <span key={ci.id} className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-md">
+                                  <span key={ci.id} className="font-medium px-1.5 py-0.5 rounded-md"
+                                    style={{ fontSize: "10px", color: TEXT2, backgroundColor: SURFACE, border: `1px solid ${BORDER}` }}>
                                     {ci.name}
                                   </span>
                                 ))}
                               </div>
                             </div>
                             <div className="flex-shrink-0 text-right">
-                              <p className="font-extrabold text-base" style={{ color: themeColor }}>
-                                ${combo.comboPrice?.toFixed(2)}
-                              </p>
+                              <p className="font-bold" style={{ fontSize: "15px", color: tc }}>${combo.comboPrice?.toFixed(2)}</p>
                               {savings > 0.01 && (
                                 <>
-                                  <p className="text-[11px] text-zinc-500 line-through">${originalTotal.toFixed(2)}</p>
-                                  <p className="text-[11px] font-bold text-emerald-400">{savingsPct}% off</p>
+                                  <p className="line-through" style={{ fontSize: "11px", color: TEXT3 }}>${originalTotal.toFixed(2)}</p>
+                                  <p className="font-bold" style={{ fontSize: "11px", color: "#22C55E" }}>{savingsPct}% off</p>
                                 </>
                               )}
                             </div>
@@ -243,13 +259,11 @@ export default function ItemDetailSheet({
               </div>
             )}
 
-            {/* ── Pairs well with — CLICKABLE ── */}
+            {/* Pairs well with */}
             {relatedAddons.length > 0 && (
               <div>
-                <h3 className="text-xs uppercase tracking-widest font-semibold text-zinc-500 mb-3">
-                  Pairs Well With
-                </h3>
-                <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1" style={{ scrollbarWidth: "none" }}>
+                <h3 className="font-bold uppercase tracking-widest mb-3" style={{ fontSize: "11px", color: TEXT3 }}>Pairs Well With</h3>
+                <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
                   {relatedAddons.map((addon) => {
                     const partner = addon.items.find((i) => i.id !== item.id);
                     if (!partner) return null;
@@ -257,20 +271,16 @@ export default function ItemDetailSheet({
                       <button
                         key={addon.id}
                         onClick={() => onViewItem(partner)}
-                        className="flex-shrink-0 flex items-center gap-2.5 bg-zinc-900 border border-white/[0.07] rounded-2xl px-3 py-2.5 min-w-0 active:scale-95 transition-transform text-left"
+                        className="flex-shrink-0 flex items-center gap-2.5 px-3 py-2.5 text-left active:scale-95 transition-transform"
+                        style={{ borderRadius: "14px", backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}
                       >
                         {partner.imageUrl
-                          ? <img src={partner.imageUrl} alt={partner.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                          : <div className="w-12 h-12 rounded-xl bg-zinc-700 flex items-center justify-center flex-shrink-0 text-xl">🍽️</div>}
+                          ? <img src={partner.imageUrl} alt={partner.name} className="object-cover flex-shrink-0" style={{ width: "48px", height: "48px", borderRadius: "10px" }} />
+                          : <div className="flex items-center justify-center flex-shrink-0" style={{ width: "48px", height: "48px", borderRadius: "10px", backgroundColor: SURFACE, fontSize: "20px" }}>🍽️</div>}
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-white truncate max-w-[90px]">{partner.name}</p>
-                          <p className="text-xs font-extrabold mt-0.5" style={{ color: themeColor }}>
-                            ${partner.price.toFixed(2)}
-                          </p>
-                          <p className="text-[10px] text-zinc-500 leading-snug truncate max-w-[90px] mt-0.5">
-                            {addon.reasoning}
-                          </p>
-                          <p className="text-[10px] text-zinc-600 mt-1 font-medium">Tap to view →</p>
+                          <p className="font-bold truncate" style={{ fontSize: "12px", color: TEXT1, maxWidth: "90px" }}>{partner.name}</p>
+                          <p className="font-bold mt-0.5" style={{ fontSize: "12px", color: tc }}>${partner.price.toFixed(2)}</p>
+                          <p className="leading-snug truncate mt-0.5" style={{ fontSize: "10px", color: TEXT3, maxWidth: "90px" }}>{addon.reasoning}</p>
                         </div>
                       </button>
                     );
@@ -279,32 +289,31 @@ export default function ItemDetailSheet({
               </div>
             )}
 
-            <div className="h-4" />
+            <div className="h-2" />
           </div>
         </div>
 
         {/* ── Sticky CTA ── */}
-        <div className="flex-shrink-0 px-5 py-4 border-t border-white/[0.06] bg-[#111]">
+        <div className="flex-shrink-0 px-5 py-4" style={{ backgroundColor: SURFACE, borderTop: `1px solid ${BORDER}` }}>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3 bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2">
-              <button
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-7 h-7 flex items-center justify-center text-white text-lg font-bold rounded-lg hover:bg-zinc-700 transition-colors"
-              >
+            {/* Qty control */}
+            <div className="flex items-center gap-2 rounded-full px-3 py-2" style={{ backgroundColor: SURFACE2, border: `1px solid ${BORDER}` }}>
+              <button onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="flex items-center justify-center font-bold rounded-full"
+                style={{ width: "28px", height: "28px", fontSize: "18px", color: TEXT1 }}>
                 −
               </button>
-              <span className="w-5 text-center text-white font-bold text-base">{qty}</span>
-              <button
-                onClick={() => setQty((q) => q + 1)}
-                className="w-7 h-7 flex items-center justify-center text-white text-lg font-bold rounded-lg hover:bg-zinc-700 transition-colors"
-              >
+              <span className="text-center font-bold" style={{ width: "20px", fontSize: "15px", color: TEXT1 }}>{qty}</span>
+              <button onClick={() => setQty((q) => q + 1)}
+                className="flex items-center justify-center font-bold rounded-full"
+                style={{ width: "28px", height: "28px", fontSize: "18px", color: TEXT1 }}>
                 +
               </button>
             </div>
             <button
               onClick={handleAdd}
-              className="flex-1 py-3 rounded-xl font-bold text-base text-black transition-colors active:scale-[0.98]"
-              style={{ backgroundColor: themeColor }}
+              className="flex-1 rounded-full font-bold text-white transition-all active:scale-[0.98]"
+              style={{ paddingTop: "14px", paddingBottom: "14px", fontSize: "15px", backgroundColor: tc, boxShadow: `0 6px 20px ${tc}44` }}
             >
               Add to Order · ${(item.price * qty).toFixed(2)}
             </button>

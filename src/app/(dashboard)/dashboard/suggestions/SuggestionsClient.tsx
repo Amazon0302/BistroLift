@@ -22,9 +22,9 @@ interface Props {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:  "bg-zinc-700/60 text-zinc-300",
-  approved: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
-  rejected: "bg-red-500/10 text-red-400 border border-red-500/20",
+  pending:  "bg-gray-100 text-gray-500",
+  approved: "bg-emerald-50 text-emerald-600 border border-emerald-200",
+  rejected: "bg-red-50 text-red-500 border border-red-200",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -35,10 +35,10 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const TYPE_STYLES: Record<string, string> = {
-  addon:   "bg-amber-500/10 text-amber-400 border border-amber-500/20",
-  combo:   "bg-purple-500/10 text-purple-400 border border-purple-500/20",
-  upgrade: "bg-sky-500/10 text-sky-400 border border-sky-500/20",
-  special: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
+  addon:   "bg-amber-50 text-amber-600 border border-amber-200",
+  combo:   "bg-purple-50 text-purple-600 border border-purple-200",
+  upgrade: "bg-sky-50 text-sky-600 border border-sky-200",
+  special: "bg-rose-50 text-rose-600 border border-rose-200",
 };
 
 const DURATION_OPTIONS = [
@@ -149,8 +149,8 @@ export default function SuggestionsClient({ suggestions }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">AI Upsell Suggestions</h1>
-          <p className="text-zinc-400 mt-1 text-sm">
+          <h1 className="text-[26px] font-extrabold text-gray-900">AI Upsell Suggestions</h1>
+          <p className="text-gray-400 mt-1 text-[14px]">
             Claude analyzes your menu using 5 research-backed AOV strategies and generates offers for your approval.
           </p>
         </div>
@@ -179,10 +179,10 @@ export default function SuggestionsClient({ suggestions }: Props) {
       </div>
 
       {suggestions.length === 0 ? (
-        <div className="text-center py-24 border border-dashed border-zinc-700 rounded-2xl">
+        <div className="text-center py-24 border border-dashed border-gray-200 rounded-3xl bg-white">
           <p className="text-4xl mb-4">🤖</p>
-          <p className="text-zinc-300 font-medium">No suggestions yet</p>
-          <p className="text-zinc-500 text-sm mt-1">Click &quot;Generate Suggestions&quot; to let Claude analyze your menu</p>
+          <p className="text-gray-700 font-bold text-[15px]">No suggestions yet</p>
+          <p className="text-gray-400 text-[13px] mt-1">Click &quot;Generate Suggestions&quot; to let Claude analyze your menu</p>
         </div>
       ) : (
         <>
@@ -192,13 +192,15 @@ export default function SuggestionsClient({ suggestions }: Props) {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
-                  activeTab === tab ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300"
+                className={`px-4 py-2 rounded-2xl text-[13px] font-semibold transition-all capitalize ${
+                  activeTab === tab
+                    ? "bg-gray-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-white"
                 }`}
               >
                 {tab}
                 {counts[tab] > 0 && (
-                  <span className="ml-1.5 bg-zinc-600 text-zinc-300 text-xs px-1.5 py-0.5 rounded-full">
+                  <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"}`}>
                     {counts[tab]}
                   </span>
                 )}
@@ -207,7 +209,7 @@ export default function SuggestionsClient({ suggestions }: Props) {
           </div>
 
           {filtered.length === 0 ? (
-            <p className="text-zinc-500 text-sm text-center py-12">No {activeTab} suggestions.</p>
+            <p className="text-gray-400 text-[13px] text-center py-12">No {activeTab} suggestions.</p>
           ) : (
             <div className="space-y-4">
               {filtered.map((s) => {
@@ -227,74 +229,68 @@ export default function SuggestionsClient({ suggestions }: Props) {
                 const isExpired    = s.offerEndsAt ? new Date(s.offerEndsAt) < new Date() : false;
 
                 return (
-                  <div key={s.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+                  <div key={s.id} className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
                     {/* Card header */}
                     <div className="p-5">
                       <div className="flex items-start gap-4">
                         <div className="flex-1 min-w-0">
                           {/* Badges row */}
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${TYPE_STYLES[s.type] ?? ""}`}>
+                          <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+                            <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold border ${TYPE_STYLES[s.type] ?? ""}`}>
                               {TYPE_LABEL[s.type] ?? s.type}
                             </span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[s.status]}`}>
+                            <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold ${STATUS_STYLES[s.status]}`}>
                               {s.status}
                             </span>
-                            {/* Expiry badge on approved */}
                             {s.status === "approved" && s.offerEndsAt && (
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${isExpired ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-orange-500/10 text-orange-400 border-orange-500/20"}`}>
+                              <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold border ${isExpired ? "bg-red-50 text-red-500 border-red-200" : "bg-orange-50 text-orange-600 border-orange-200"}`}>
                                 {isExpired ? "⏱ Expired" : `⏱ ${timeLeft(s.offerEndsAt)}`}
                               </span>
                             )}
                             {s.status === "approved" && !s.offerEndsAt && (
-                              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
                                 🟢 Always active
                               </span>
                             )}
-                            {/* Revenue hint */}
                             {hint && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 ml-auto hidden sm:inline-flex">
+                              <span className="text-[11px] px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 ml-auto hidden sm:inline-flex">
                                 💰 {hint}
                               </span>
                             )}
                           </div>
 
-                          <h3 className="text-white font-semibold text-base">{s.title}</h3>
-                          <p className="text-zinc-400 text-sm mt-1">{s.reasoning}</p>
+                          <h3 className="text-gray-900 font-bold text-[15px]">{s.title}</h3>
+                          <p className="text-gray-400 text-[13px] mt-1">{s.reasoning}</p>
 
-                          {/* Item pills */}
                           <div className="mt-3 flex flex-wrap gap-2">
                             {s.itemNames.map((name, i) => (
-                              <span key={i} className="bg-zinc-800 text-zinc-300 text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                              <span key={i} className="bg-gray-100 text-gray-600 text-[11px] px-2.5 py-1 rounded-xl flex items-center gap-1.5 font-medium">
                                 {name}
                                 {s.itemPrices[i] > 0 && (
-                                  <span className="text-zinc-500">${s.itemPrices[i].toFixed(2)}</span>
+                                  <span className="text-gray-400">${s.itemPrices[i].toFixed(2)}</span>
                                 )}
                               </span>
                             ))}
                           </div>
 
-                          {/* Upgrade delta info */}
                           {isUpgrade && s.comboPrice != null && (
-                            <p className="text-sky-400 text-xs mt-2 font-medium">
+                            <p className="text-sky-600 text-[12px] mt-2 font-semibold">
                               Upgrade fee: +${s.comboPrice.toFixed(2)}
                             </p>
                           )}
                         </div>
 
-                        {/* Rejected badge */}
                         {s.status === "rejected" && (
-                          <span className="text-xs text-zinc-600 shrink-0">Rejected</span>
+                          <span className="text-[12px] text-gray-400 shrink-0 font-medium">Rejected</span>
                         )}
 
-                        {/* Approved combo/special: show final price */}
                         {s.status === "approved" && needsPrice && s.comboPrice != null && (
                           <div className="shrink-0 text-right">
-                            <p className="text-emerald-400 font-extrabold text-lg">${s.comboPrice.toFixed(2)}</p>
+                            <p className="text-emerald-600 font-extrabold text-[18px]">${s.comboPrice.toFixed(2)}</p>
                             {s.originalTotal > 0 && (
                               <>
-                                <p className="text-zinc-500 text-xs line-through">${s.originalTotal.toFixed(2)}</p>
-                                <p className="text-emerald-400 text-xs font-semibold">
+                                <p className="text-gray-300 text-[12px] line-through">${s.originalTotal.toFixed(2)}</p>
+                                <p className="text-emerald-500 text-[11px] font-bold">
                                   Saves ${(s.originalTotal - s.comboPrice).toFixed(2)} ({Math.round(((s.originalTotal - s.comboPrice) / s.originalTotal) * 100)}%)
                                 </p>
                               </>
@@ -304,51 +300,45 @@ export default function SuggestionsClient({ suggestions }: Props) {
                       </div>
                     </div>
 
-                    {/* ── Expandable approval panel for combos/specials (pending) ── */}
+                    {/* ── Approval panel for combos/specials (pending) ── */}
                     {needsPrice && s.status === "pending" && (
-                      <div className="border-t border-zinc-800 bg-zinc-950/50 px-5 py-4 space-y-4">
-                        {/* Pricing overview */}
+                      <div className="border-t border-gray-100 bg-gray-50 px-5 py-4 space-y-4">
                         <div className="flex items-center gap-6 text-sm flex-wrap">
                           <div>
-                            <p className="text-zinc-500 text-xs uppercase tracking-wider mb-0.5">Individual total</p>
-                            <p className="text-white font-semibold">${s.originalTotal.toFixed(2)}</p>
+                            <p className="text-gray-400 text-[11px] uppercase tracking-wider mb-0.5">Individual total</p>
+                            <p className="text-gray-900 font-bold">${s.originalTotal.toFixed(2)}</p>
                           </div>
-                          <div className="text-zinc-600">→</div>
+                          <div className="text-gray-300">→</div>
                           <div>
-                            <p className="text-zinc-500 text-xs uppercase tracking-wider mb-0.5">AI suggested</p>
-                            <p className="text-purple-400 font-semibold">${s.comboPrice?.toFixed(2) ?? "—"}</p>
+                            <p className="text-gray-400 text-[11px] uppercase tracking-wider mb-0.5">AI suggested</p>
+                            <p className="text-purple-600 font-bold">${s.comboPrice?.toFixed(2) ?? "—"}</p>
                           </div>
                           {savings > 0 && isValidPrice && (
                             <>
-                              <div className="text-zinc-600">·</div>
+                              <div className="text-gray-300">·</div>
                               <div>
-                                <p className="text-zinc-500 text-xs uppercase tracking-wider mb-0.5">Customer saves</p>
-                                <p className="text-emerald-400 font-bold">${savings.toFixed(2)} ({pct}%)</p>
+                                <p className="text-gray-400 text-[11px] uppercase tracking-wider mb-0.5">Customer saves</p>
+                                <p className="text-emerald-600 font-bold">${savings.toFixed(2)} ({pct}%)</p>
                               </div>
                             </>
                           )}
                         </div>
 
-                        {/* Editable price */}
                         <div>
-                          <label className="text-xs uppercase tracking-wider font-semibold text-zinc-500 block mb-2">
-                            Set price
-                          </label>
+                          <label className="text-[11px] uppercase tracking-wider font-bold text-gray-400 block mb-2">Set price</label>
                           <div className="flex items-center gap-3 flex-wrap">
                             <div className="relative flex-1 max-w-[180px]">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-semibold">$</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">$</span>
                               <input
                                 type="number"
                                 min="0.01"
                                 step="0.01"
                                 value={editedRaw}
-                                onChange={(e) =>
-                                  setEditedPrices((prev) => ({ ...prev, [s.id]: e.target.value }))
-                                }
-                                className={`w-full bg-zinc-800 border rounded-xl pl-7 pr-3 py-2.5 text-white font-bold text-lg focus:outline-none transition-colors ${
+                                onChange={(e) => setEditedPrices((prev) => ({ ...prev, [s.id]: e.target.value }))}
+                                className={`w-full bg-white border rounded-2xl pl-7 pr-3 py-2.5 text-gray-900 font-bold text-[16px] focus:outline-none transition-colors shadow-sm ${
                                   !isValidPrice && editedRaw !== ""
-                                    ? "border-red-500/50 focus:border-red-500"
-                                    : "border-zinc-700 focus:border-amber-500"
+                                    ? "border-red-300 focus:border-red-400"
+                                    : "border-gray-200 focus:border-amber-400"
                                 }`}
                               />
                             </div>
@@ -358,10 +348,8 @@ export default function SuggestionsClient({ suggestions }: Props) {
                                 return (
                                   <button
                                     key={pctOff}
-                                    onClick={() =>
-                                      setEditedPrices((prev) => ({ ...prev, [s.id]: price.toFixed(2) }))
-                                    }
-                                    className="text-xs px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors"
+                                    onClick={() => setEditedPrices((prev) => ({ ...prev, [s.id]: price.toFixed(2) }))}
+                                    className="text-[12px] px-2.5 py-1.5 rounded-xl bg-white border border-gray-200 text-gray-600 hover:border-gray-300 transition-colors font-medium"
                                   >
                                     -{pctOff}%
                                   </button>
@@ -370,55 +358,45 @@ export default function SuggestionsClient({ suggestions }: Props) {
                             </div>
                           </div>
                           {editedRaw !== "" && !isValidPrice && (
-                            <p className="text-red-400 text-xs mt-1.5">
-                              Price must be between $0.01 and ${s.originalTotal.toFixed(2)}
-                            </p>
+                            <p className="text-red-500 text-[12px] mt-1.5">Price must be between $0.01 and ${s.originalTotal.toFixed(2)}</p>
                           )}
                           {isValidPrice && savings > 0 && (
-                            <p className="text-emerald-400 text-xs mt-1.5 font-medium">
-                              ✓ Customers save ${savings.toFixed(2)} ({pct}% off)
-                            </p>
+                            <p className="text-emerald-600 text-[12px] mt-1.5 font-semibold">✓ Customers save ${savings.toFixed(2)} ({pct}% off)</p>
                           )}
                         </div>
 
-                        {/* Offer duration picker */}
                         <div>
-                          <p className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-2">
-                            Offer duration
-                          </p>
+                          <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-2">Offer duration</p>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {DURATION_OPTIONS.map((opt) => (
                               <button
                                 key={opt.value}
-                                onClick={() =>
-                                  setDurations((prev) => ({ ...prev, [s.id]: opt.value }))
-                                }
-                                className={`text-left px-3 py-2 rounded-xl border text-xs transition-colors ${
+                                onClick={() => setDurations((prev) => ({ ...prev, [s.id]: opt.value }))}
+                                className={`text-left px-3 py-2 rounded-2xl border text-[12px] transition-colors ${
                                   dur === opt.value
-                                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
-                                    : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
+                                    ? "border-amber-400 bg-amber-50 text-amber-700"
+                                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                                 }`}
                               >
                                 <p className="font-semibold">{opt.label}</p>
-                                <p className="opacity-60">{opt.desc}</p>
+                                <p className="opacity-60 text-[11px]">{opt.desc}</p>
                               </button>
                             ))}
                           </div>
                         </div>
 
-                        {/* Action buttons */}
                         <div className="flex gap-2 pt-1">
                           <button
                             onClick={() => review(s, "approved")}
                             disabled={isBusy || !isValidPrice}
-                            className="flex-1 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-semibold rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="flex-1 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[13px] font-bold rounded-2xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             {isBusy ? "Saving…" : `✓ Approve at $${effectivePrice.toFixed(2)}${dur !== "never" ? ` · ${DURATION_OPTIONS.find((o) => o.value === dur)?.label}` : ""}`}
                           </button>
                           <button
                             onClick={() => review(s, "rejected")}
                             disabled={isBusy}
-                            className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                            className="px-4 py-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-[13px] font-bold rounded-2xl transition-colors disabled:opacity-50"
                           >
                             ✕ Reject
                           </button>
@@ -426,24 +404,20 @@ export default function SuggestionsClient({ suggestions }: Props) {
                       </div>
                     )}
 
-                    {/* Offer duration + approve/reject for non-price pending (addon/upgrade) */}
+                    {/* Approval panel for non-price pending (addon/upgrade) */}
                     {!needsPrice && s.status === "pending" && (
-                      <div className="border-t border-zinc-800 bg-zinc-950/50 px-5 py-4 space-y-3">
+                      <div className="border-t border-gray-100 bg-gray-50 px-5 py-4 space-y-3">
                         <div>
-                          <p className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-2">
-                            Offer duration
-                          </p>
+                          <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-2">Offer duration</p>
                           <div className="flex gap-2 flex-wrap">
                             {DURATION_OPTIONS.map((opt) => (
                               <button
                                 key={opt.value}
-                                onClick={() =>
-                                  setDurations((prev) => ({ ...prev, [s.id]: opt.value }))
-                                }
-                                className={`px-3 py-1.5 rounded-lg border text-xs transition-colors ${
+                                onClick={() => setDurations((prev) => ({ ...prev, [s.id]: opt.value }))}
+                                className={`px-3 py-1.5 rounded-2xl border text-[12px] font-medium transition-colors ${
                                   dur === opt.value
-                                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
-                                    : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
+                                    ? "border-amber-400 bg-amber-50 text-amber-700"
+                                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                                 }`}
                               >
                                 {opt.label}
@@ -455,14 +429,14 @@ export default function SuggestionsClient({ suggestions }: Props) {
                           <button
                             onClick={() => review(s, "approved")}
                             disabled={isBusy}
-                            className="flex-1 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                            className="flex-1 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[13px] font-bold rounded-2xl transition-colors disabled:opacity-50"
                           >
                             {isBusy ? "Saving…" : `✓ Approve${dur !== "never" ? ` · ${DURATION_OPTIONS.find((o) => o.value === dur)?.label}` : ""}`}
                           </button>
                           <button
                             onClick={() => review(s, "rejected")}
                             disabled={isBusy}
-                            className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                            className="px-4 py-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-[13px] font-bold rounded-2xl transition-colors disabled:opacity-50"
                           >
                             ✕ Reject
                           </button>

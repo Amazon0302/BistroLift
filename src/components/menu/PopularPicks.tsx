@@ -31,11 +31,11 @@ export default function PopularPicks({ items, themeColor, onScrollTo, categoryId
   return (
     <div className="mt-6">
       <div className="px-4 flex items-center gap-2 mb-3">
-        <h2 className="text-base font-bold text-white">Popular Picks</h2>
-        <span className="text-xs text-zinc-500">· loved by guests</span>
+        <h2 className="text-base font-bold" style={{ color: "#F3EEE7" }}>Popular Picks</h2>
+        <span className="text-xs" style={{ color: "#5E5852" }}>· loved by guests</span>
       </div>
       <div
-        className="flex gap-3 overflow-x-auto scrollbar-none px-4 pb-1"
+        className="flex gap-3 overflow-x-auto px-4 pb-1"
         style={{ scrollbarWidth: "none" }}
       >
         {items.map((item) => {
@@ -45,7 +45,8 @@ export default function PopularPicks({ items, themeColor, onScrollTo, categoryId
             <button
               key={item.id}
               onClick={() => catId && onScrollTo(catId)}
-              className="flex-shrink-0 w-36 bg-[#141414] border border-white/[0.07] rounded-2xl overflow-hidden active:scale-95 transition-transform text-left"
+              className="flex-shrink-0 w-36 overflow-hidden active:scale-95 transition-transform text-left"
+              style={{ borderRadius: "18px", backgroundColor: "#1A1714", border: "1px solid rgba(255,255,255,0.08)" }}
             >
               {/* Image */}
               <div className="relative h-28 overflow-hidden">
@@ -58,12 +59,12 @@ export default function PopularPicks({ items, themeColor, onScrollTo, categoryId
                 ) : (
                   <div
                     className="w-full h-full flex items-center justify-center text-4xl"
-                    style={{ background: `linear-gradient(135deg, #1a1a1a, #222)` }}
+                    style={{ background: `linear-gradient(135deg, ${themeColor}22, ${themeColor}0C)` }}
                   >
                     🍽️
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65), transparent)" }} />
                 {topBadge && (
                   <span
                     className="absolute top-2 left-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
@@ -76,7 +77,7 @@ export default function PopularPicks({ items, themeColor, onScrollTo, categoryId
 
               {/* Info */}
               <div className="p-2.5">
-                <p className="text-white font-semibold text-xs leading-tight line-clamp-2">{item.name}</p>
+                <p className="font-semibold text-xs leading-tight line-clamp-2" style={{ color: "#F3EEE7" }}>{item.name}</p>
                 <p className="text-xs font-bold mt-1" style={{ color: themeColor }}>
                   ${item.price.toFixed(2)}
                 </p>

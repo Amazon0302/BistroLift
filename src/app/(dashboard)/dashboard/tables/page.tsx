@@ -17,8 +17,8 @@ export default async function TablesPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">QR Codes</h2>
-        <p className="text-zinc-400 mt-1">Generate and download QR codes for each table</p>
+        <h2 className="text-[26px] font-extrabold text-gray-900">QR Codes</h2>
+        <p className="text-gray-400 text-[14px] mt-1">Generate and download QR codes for each table</p>
       </div>
       <TablesManager
         restaurantId={restaurant.id}

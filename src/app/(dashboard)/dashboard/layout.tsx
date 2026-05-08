@@ -13,7 +13,7 @@ export default async function DashboardLayout({
 
   return (
     <SessionProvider session={session}>
-      <div className="flex h-screen bg-[#0f0f0f] text-white overflow-hidden">
+      <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#FAFAF8", color: "#1C1A17" }}>
         <Sidebar />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>

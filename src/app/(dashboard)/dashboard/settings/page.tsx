@@ -16,8 +16,8 @@ export default async function SettingsPage() {
   return (
     <div className="p-8 max-w-2xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">Restaurant Settings</h2>
-        <p className="text-zinc-400 mt-1">Manage your restaurant profile and branding</p>
+        <h2 className="text-[26px] font-extrabold text-gray-900">Restaurant Settings</h2>
+        <p className="text-gray-400 text-[14px] mt-1">Manage your restaurant profile and branding</p>
       </div>
       <SettingsForm
         restaurant={{

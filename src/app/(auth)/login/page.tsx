@@ -31,62 +31,75 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "#FAFAF8" }}>
+      {/* Background decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full" style={{ backgroundColor: "rgba(217,119,6,0.07)" }} />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full" style={{ backgroundColor: "rgba(217,119,6,0.05)" }} />
+      </div>
+
+      <div className="relative w-full max-w-sm">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            Bistro<span className="text-amber-400">Lift</span>
+          <div className="inline-flex items-center justify-center mb-4" style={{ width: "60px", height: "60px", borderRadius: "18px", backgroundColor: "#1C1A17", fontSize: "24px", boxShadow: "0 8px 24px rgba(0,0,0,0.16)" }}>
+            🍽️
+          </div>
+          <h1 className="font-bold tracking-tight" style={{ fontSize: "28px", color: "#1C1A17", letterSpacing: "-0.5px" }}>
+            Bistro<span style={{ color: "#D97706" }}>Lift</span>
           </h1>
-          <p className="text-zinc-400 mt-2">Sign in to your dashboard</p>
+          <p className="mt-1" style={{ fontSize: "14px", color: "#9E9A8E" }}>Sign in to your dashboard</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 space-y-5"
-        >
-          <div className="space-y-2">
-            <label className="text-sm text-zinc-400" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              placeholder="you@restaurant.com"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
-            />
-          </div>
+        {/* Card */}
+        <div className="p-7 space-y-5" style={{ backgroundColor: "#FFFFFF", borderRadius: "24px", border: "1px solid #EDEBE6", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="font-semibold" htmlFor="email" style={{ fontSize: "13px", color: "#706B5E" }}>Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder="you@restaurant.com"
+                className="w-full focus:outline-none transition-colors"
+                style={{ backgroundColor: "#FAFAF8", border: "1.5px solid #EDEBE6", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", color: "#1C1A17" }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#1C1A17")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#EDEBE6")}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-zinc-400" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              placeholder="••••••••"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <label className="font-semibold" htmlFor="password" style={{ fontSize: "13px", color: "#706B5E" }}>Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                placeholder="••••••••"
+                className="w-full focus:outline-none transition-colors"
+                style={{ backgroundColor: "#FAFAF8", border: "1.5px solid #EDEBE6", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", color: "#1C1A17" }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#1C1A17")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#EDEBE6")}
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-semibold py-3 rounded-xl transition-colors"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full font-bold text-white disabled:opacity-50 transition-all active:scale-[0.98] mt-2"
+              style={{ paddingTop: "14px", paddingBottom: "14px", fontSize: "15px", backgroundColor: "#1C1A17", boxShadow: "0 4px 16px rgba(28,26,23,0.25)" }}
+            >
+              {loading ? "Signing in…" : "Sign In →"}
+            </button>
+          </form>
 
-          <p className="text-center text-zinc-500 text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-amber-400 hover:text-amber-300">
+          <p className="text-center" style={{ fontSize: "13px", color: "#9E9A8E" }}>
+            No account?{" "}
+            <Link href="/register" className="font-semibold transition-colors" style={{ color: "#D97706" }}>
               Register your restaurant
             </Link>
           </p>
-        </form>
+        </div>
       </div>
     </div>
   );
